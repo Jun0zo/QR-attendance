@@ -1,17 +1,18 @@
-# schemas/transaction.py
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 
 class TransactionBase(BaseModel):
     employee_id: int
     store_id: int
-    timestamp: datetime
-    check_in_out: bool
+    check_in: datetime
+    check_out: Optional[datetime] = None
 
 
-class TransactionCreate(TransactionBase):
-    pass
+class TransactionCreate(BaseModel):
+    employee_id: int
+    store_id: int
 
 
 class TransactionUpdate(TransactionBase):

@@ -1,6 +1,6 @@
 // src/components/EventFilters.js
 import React from "react";
-import { TextField, MenuItem, Box } from "@mui/material";
+import { TextField, MenuItem } from "@mui/material";
 
 function EventFilters({ filters, handleFilterChange, stores, employees }) {
   const handleChange = (e) => {
@@ -9,14 +9,26 @@ function EventFilters({ filters, handleFilterChange, stores, employees }) {
   };
 
   return (
-    <Box display="flex" justifyContent="center" gap={2} mt={2}>
+    <div>
+      <TextField
+        name="year"
+        label="Year"
+        value={filters.year}
+        onChange={handleChange}
+      />
+      <TextField
+        name="month"
+        label="Month"
+        value={filters.month}
+        onChange={handleChange}
+      />
       <TextField
         select
         name="store_id"
-        label="점포명"
+        label="Store"
         value={filters.store_id}
         onChange={handleChange}
-        helperText="점포를 선택해주세요"
+        helperText="Please select a store"
       >
         {stores.map((store) => (
           <MenuItem key={store.id} value={store.id}>
@@ -27,11 +39,10 @@ function EventFilters({ filters, handleFilterChange, stores, employees }) {
       <TextField
         select
         name="employee_id"
-        label="직원명"
+        label="Employee"
         value={filters.employee_id}
         onChange={handleChange}
-        helperText="직원 이름을 선택해주세요"
-        disabled={!filters.store_id} // store가 선택되지 않으면 비활성화
+        helperText="Please select an employee"
       >
         {employees.map((employee) => (
           <MenuItem key={employee.id} value={employee.id}>
@@ -39,7 +50,23 @@ function EventFilters({ filters, handleFilterChange, stores, employees }) {
           </MenuItem>
         ))}
       </TextField>
-    </Box>
+      <TextField
+        name="start_date"
+        label="Start Date"
+        type="date"
+        value={filters.start_date}
+        onChange={handleChange}
+        InputLabelProps={{ shrink: true }}
+      />
+      <TextField
+        name="end_date"
+        label="End Date"
+        type="date"
+        value={filters.end_date}
+        onChange={handleChange}
+        InputLabelProps={{ shrink: true }}
+      />
+    </div>
   );
 }
 
