@@ -31,6 +31,7 @@ const RegisterTransaction = () => {
   const [storeName, setStoreName] = useState("");
   const [message, setMessage] = useState("");
   const [buttonMessage, setButtonMessage] = useState("");
+  const [buttonColor, setButtonColor] = useState("primary");
 
   useEffect(() => {
     setFilters((prevFilters) => ({
@@ -85,6 +86,7 @@ const RegisterTransaction = () => {
         if (!event) {
           setMessage("아직 출근하지 않았습니다");
           setButtonMessage("출근");
+          setButtonColor("primary");
         } else {
           if (event.check_in && !event.check_out) {
             setMessage(
@@ -92,6 +94,7 @@ const RegisterTransaction = () => {
                 0
               )} 시간 동안 출근 중입니다`
             );
+            setButtonColor("warning");
             setButtonMessage("퇴근");
           } else if (event.check_in && event.check_out) {
             setMessage("오늘 근무를 이미 마치셨습니다");
@@ -185,7 +188,7 @@ const RegisterTransaction = () => {
         </TextField>
         <Button
           variant="contained"
-          color="primary"
+          color={buttonColor}
           onClick={handleRegister}
           fullWidth
           style={{
