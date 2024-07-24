@@ -3,10 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 from sqlalchemy.sql import func
+from sqlalchemy.orm import joinedload
 from datetime import datetime, date, timedelta
 from database import Base, engine, get_db
 from models import EmployeeModel, StoreModel, TransactionModel
-from schemas import Employee, EmployeeCreate, EmployeeUpdate, Store, StoreCreate, StoreUpdate, Transaction, TransactionCreate, TransactionUpdate
+from schemas import Employee, EmployeeCreate, EmployeeUpdate, Store, StoreCreate, StoreUpdate, Transaction, TransactionWithDetails, TransactionCreate, TransactionUpdate, TransactionSummary
+from collections import defaultdict
+
 
 import time
 import sqlalchemy.exc
@@ -66,9 +69,13 @@ def create_transaction(transaction: TransactionCreate, db: Session = Depends(get
                 raise e
 
 
-@app.get("/transactions/", response_model=List[Transaction])
+@app.get("/transactions/", response_model=TransactionSummary)
 def read_transactions(year: int = None, month: int = None, store_id: int = None, employee_id: int = None, start_date: datetime = None, end_date: datetime = None, db: Session = Depends(get_db)):
-    query = db.query(TransactionModel)
+    query = db.query(TransactionModel).join(EmployeeModel).join(StoreModel).options(
+        joinedload(TransactionModel.employee),
+        joinedload(TransactionModel.store)
+    )
+
     if year:
         query = query.filter(func.strftime(
             "%Y", TransactionModel.check_in) == str(year))
@@ -83,7 +90,24 @@ def read_transactions(year: int = None, month: int = None, store_id: int = None,
         query = query.filter(TransactionModel.check_in >= start_date)
     if end_date:
         query = query.filter(TransactionModel.check_in <= end_date)
-    return query.all()
+    transactions = query.all()
+
+    res_transactions = []
+    res_time_summation = defaultdict(lambda: timedelta(0))
+
+    for transaction in transactions:
+        transaction_dict = transaction.__dict__
+        transaction_dict['employee_name'] = transaction.employee.name
+        transaction_dict['store_name'] = transaction.store.name
+        res_transactions.append(TransactionWithDetails(**transaction_dict))
+        if transaction.check_in and transaction.check_out:
+            res_time_summation[transaction.employee.name] += transaction.check_out - \
+                transaction.check_in
+
+    res_time_summation = {k: v.total_seconds(
+    ) / 3600 for k, v in res_time_summation.items()}
+    print(res_transactions)
+    return {"transactions": res_transactions, "res_time_summation": res_time_summation}
 
 
 @app.put("/transactions/{transaction_id}", response_model=Transaction)
